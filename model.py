@@ -24,8 +24,8 @@ class SegmentationModel():
     def __init__(self):
         self.dir_path = os.getcwd()
         print(self.dir_path)
-        #model_path = self.dir_path+"/parameters/toasty-sweep-1511.pth" # halfunet
-        model_path = self.dir_path+"/parameters/devoted-sweep-5923pruning70_time_1nnc.pth" # pruning07
+        #model_path = /home/t02/IVUS/resource/model_report/toasty-sweep-1511.pth # halfunet
+        model_path = "/home/t02/IVUS/resource/model_report/report5_pruning/devoted-sweep-5923pruning70_time_1nnc.pth" # pruning07
         self.model = halfUnet.UNetWithPolarResnet50Encoder_half(5)
         self.model = pruning_model.manual_pruning_07(self.model)
         self.model.cuda()
