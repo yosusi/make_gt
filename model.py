@@ -3,14 +3,15 @@ import cv2
 import numpy as np
 import torch
 import sys
-sys.path.append('/home/t02/IVUS')
+from pathlib import Path                                 # 追加
+sys.path.append(str(Path(__file__).parent.parent)) 
 import glob
 import json
 import yaml
 import os
 import json
 from pathlib import Path
-from utils import mask_gt_conv, misc, halfUnet, pruning_model
+from utils import mask_gt_conv, misc,halfUnet, pruning_model
 from PIL import Image
 import time
 
@@ -64,7 +65,11 @@ class SegmentationModel():
         norm = self.min_max(img).cuda()
         transfer = self.transfer_calc(img).cuda()
         cath_hint = torch.zeros(img.shape).cuda()
+        if cath != None:
+            for c in cath:
+                cath_hint[int(c[1]),int(c[0])] = 1
 
+        
         input_layer = torch.stack([norm, norm, cath_hint], dim=0)
         input_layer = torch.unsqueeze(input_layer, 0)
 
@@ -118,12 +123,28 @@ class SegmentationModel():
 
 if __name__ == "__main__":
     #Test code
-    segment = SegmentationModel()
-    file_list = glob.glob('/DataSet/test/160622152825/rt/*.png')
-    for file in file_list:
-        print(file)
-        segment.save_pic(file, is_resize=True)
-    print('done')
+    m = SegmentationModel()
+    cath_pred = misc.get_catheter_pred('/media/t02/DataCase/project/1_zfix_tenting/Source/catheter_prediction')
+    folder_list = glob.glob('/media/t02/DataCase/project/1_zfix_tenting/DataSet/*/*')
+    for folder in folder_list:
+        seq = Path(folder).stem
+        catheter = cath_pred[seq]
+        #print(len(catheter))
+        for i in range(len(catheter)):
+            file_path = f'{folder}/rt/{i}.png'
+            save_path = file_path.replace('rt', 'RBY_cath')
+            pdir = str(Path(save_path).parents[0])
+            os.makedirs(pdir, exist_ok=True)
+            cath = catheter[i]
+            input_layer = m.input_preparation(file_path,cath=cath)
+            output = m.model(input_layer)
+            image = mask_gt_conv.prediction_to_pic(output)
+            im = Image.fromarray(image)
+            im.save(save_path)
+            #print(save_path)
+            #print(cath)
+
+    
 
 
 

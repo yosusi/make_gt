@@ -10,6 +10,19 @@ import torch_pruning as tp
 from scipy.ndimage import distance_transform_edt as distance
 from torch import Tensor
 from typing import Any, Callable, Iterable, List, Set, Tuple, TypeVar, Union
+import json
+from glob import glob
+
+
+def get_catheter_pred(folder_name):
+    output = {}
+    json_file_list = glob(folder_name + '/*/preds_legacy.json')
+    for json_file in json_file_list:
+        with open(json_file) as file:
+            data = json.load(file)
+            output.update(data)
+
+    return output
 
 
 # Assert utils
@@ -172,5 +185,5 @@ def prune_model(model, rate=0.3):
 
 
 if __name__ == '__main__':
-    dir_check('/home/syoshizawa/Documents/ivus-ml/README.md')
-    print('DONE')
+    output = get_catheter_pred('/media/t02/DataCase/project/1_zfix_tenting/Source/catheter_prediction')
+    print(output)
